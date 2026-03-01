@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Counter Sessions</title>
+  <meta name="theme-color" content="#0b0f14" />
+  <style>
+    :root{
+      --bg:#0b0f14;
+      --card:#111824;
+      --card2:#0f1621;
+      --text:#e8eef6;
+      --muted:#93a4b8;
+      --green:#22c55e;
+      --red:#ef4444;
+      --blue:#60a5fa;
+      --ring: rgba(255,255,255,.06);
+      --shadow: 0 14px 45px rgba(0,0,0,.45);
+      --radius: 18px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background: radial-gradient(1200px 800px at 20% 0%, rgba(96,165,250,.12), transparent 50%),
+                  radial-gradient(900px 600px at 90% 20%, rgba(34,197,94,.10), transparent 55%),
+                  radial-gradient(900px 700px at 10% 90%, rgba(239,68,68,.10), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      -webkit-font-smoothing: antialiased;
+      padding: 18px 14px 40px;
+    }
+    .app{
+      max-width: 520px;
+      margin: 0 auto;
+    }
+    header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      padding: 4px 2px 14px;
+    }
+    .title{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    h1{
+      font-size: 20px;
+      margin:0;
+      letter-spacing:.2px;
+    }
+    .sub{
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.25;
+    }
+    .chiprow{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .chip{
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 999px;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: var(--text);
+      display:flex;
+      align-items:center;
+      gap:8px;
+      user-select:none;
+    }
+    .chip input{ accent-color: var(--blue); }
+    .grid{
+      display:grid;
+      gap:12px;
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .inner{
+      padding: 14px;
+    }
+    .row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .label{
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+    }
+    .value{
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text);
+    }
+    .modeToggle{
+      display:flex;
+      gap:8px;
+      background: rgba(0,0,0,.22);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 999px;
+      padding: 4px;
+    }
+    .modeBtn{
+      border:0;
+      background: transparent;
+      color: var(--muted);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .modeBtn.active{
+      background: rgba(96,165,250,.18);
+      color: var(--text);
+      border: 1px solid rgba(96,165,250,.35);
+    }
+
+    .counterWrap{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      margin-top: 12px;
+    }
+    .countBox{
+      flex: 1;
+      min-width: 180px;
+      background: rgba(0,0,0,.25);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      padding: 14px 14px 12px;
+    }
+    .countBig{
+      font-size: 48px;
+      line-height: 1;
+      letter-spacing: .02em;
+      font-weight: 720;
+      margin: 2px 0 6px;
+    }
+    .countSub{
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .btnCol{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      width: 150px;
+      min-width: 150px;
+    }
+    .bigBtn{
+      height: 72px;
+      border-radius: 18px;
+      border: 2px solid var(--ring);
+      background: rgba(255,255,255,.05);
+      color: var(--text);
+      font-size: 28px;
+      font-weight: 800;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      cursor:pointer;
+      box-shadow: 0 10px 22px rgba(0,0,0,.25);
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .bigBtn:active{ transform: scale(.98); }
+    .bigBtn.plus{
+      border-color: rgba(34,197,94,.55);
+      box-shadow: 0 10px 22px rgba(34,197,94,.14), 0 10px 22px rgba(0,0,0,.22);
+    }
+    .bigBtn.minus{
+      border-color: rgba(239,68,68,.55);
+      box-shadow: 0 10px 22px rgba(239,68,68,.14), 0 10px 22px rgba(0,0,0,.22);
+    }
+    .ring{
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 3px solid currentColor;
+      display:grid;
+      place-items:center;
+      font-size: 22px;
+      line-height: 0;
+    }
+    .plus { color: var(--green); }
+    .minus{ color: var(--red); }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top: 12px;
+    }
+    .smallBtn{
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-size: 13px;
+      cursor:pointer;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .smallBtn:active{ transform: scale(.99); }
+    .smallBtn.danger{ border-color: rgba(239,68,68,.30); }
+    .smallBtn.primary{ border-color: rgba(96,165,250,.35); }
+
+    .sessions{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .sessionItem{
+      background: rgba(0,0,0,.25);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 16px;
+      padding: 12px;
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      justify-content:space-between;
+    }
+    .sessionMain{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width: 0;
+    }
+    .sessionTop{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .pill{
+      font-size: 11px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.10);
+      color: var(--muted);
+      background: rgba(255,255,255,.04);
+      user-select:none;
+    }
+    .pill.pitch{ border-color: rgba(34,197,94,.22); color: rgba(34,197,94,.95); }
+    .pill.hit{ border-color: rgba(96,165,250,.22); color: rgba(96,165,250,.95); }
+    .sessionTitle{
+      font-weight: 700;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 320px;
+    }
+    .sessionMeta{
+      color: var(--muted);
+      font-size: 12px;
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      font-family: var(--mono);
+    }
+    .sessionBtns{
+      display:flex;
+      gap:8px;
+      flex-shrink:0;
+      align-items:center;
+    }
+    .iconBtn{
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      cursor:pointer;
+      display:grid;
+      place-items:center;
+    }
+    .iconBtn:active{ transform: scale(.98); }
+    .mutedNote{ color: var(--muted); font-size: 13px; line-height:1.35; }
+
+    .footerNote{
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      opacity: .95;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title">
+        <h1>Pitch / Hitting Counter</h1>
+        <div class="sub" id="subtitle">New session ready • Stored locally on this phone</div>
+      </div>
+
+      <div class="chiprow">
+        <label class="chip" title="Prompt for MPH when adding a pitch">
+          <input id="speedToggle" type="checkbox" />
+          Track MPH
+        </label>
+        <label class="chip" title="Vibrate on taps (if supported)">
+          <input id="hapticsToggle" type="checkbox" checked />
+          Haptics
+        </label>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <div class="inner">
+          <div class="row">
+            <div>
+              <div class="label">Mode</div>
+              <div class="modeToggle" role="tablist" aria-label="Mode toggle">
+                <button class="modeBtn active" id="modePitch" type="button">Pitching</button>
+                <button class="modeBtn" id="modeHit" type="button">Hitting</button>
+              </div>
+            </div>
+
+            <div style="text-align:right">
+              <div class="label">Session</div>
+              <div class="value" id="sessionStamp">—</div>
+            </div>
+          </div>
+
+          <div class="counterWrap">
+            <div class="countBox">
+              <div class="label" id="countLabel">Pitches</div>
+              <div class="countBig" id="countValue">0</div>
+              <div class="countSub">
+                Time: <span class="value" id="timer">00:00:00</span>
+              </div>
+            </div>
+
+            <div class="btnCol">
+              <button class="bigBtn plus" id="btnPlus" type="button">
+                <span class="ring">+</span>
+                <span id="plusText">Add</span>
+              </button>
+              <button class="bigBtn minus" id="btnMinus" type="button">
+                <span class="ring">−</span>
+                <span>Undo</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="smallBtn primary" id="btnSave" type="button">Save Session</button>
+            <button class="smallBtn" id="btnNew" type="button">New Session</button>
+            <button class="smallBtn danger" id="btnReset" type="button">Reset Count</button>
+          </div>
+
+          <div class="footerNote" id="modeHelp"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="inner">
+          <div class="row" style="margin-bottom:10px">
+            <div>
+              <div class="label">Saved sessions</div>
+              <div class="sub">Tap a session to view details, export CSV, or delete.</div>
+            </div>
+            <div class="actions" style="margin:0">
+              <button class="smallBtn" id="btnExportAll" type="button">Export All (CSV)</button>
+              <button class="smallBtn danger" id="btnClearAll" type="button">Clear All</button>
+            </div>
+          </div>
+
+          <div class="sessions" id="sessionsList"></div>
+          <div class="mutedNote" id="emptyState" style="display:none; margin-top:10px;">
+            No saved sessions yet. Start a session, then hit <b>Save Session</b>.
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // ---------- Utilities ----------
+  const $ = (id) => document.getElementById(id);
+
+  const pad2 = (n) => String(n).padStart(2, "0");
+  const nowISO = () => new Date().toISOString();
+  const formatLocalStamp = (d) => {
+    const dt = (d instanceof Date) ? d : new Date(d);
+    return dt.toLocaleString(undefined, { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" });
+  };
+  const formatHMS = (ms) => {
+    const s = Math.max(0, Math.floor(ms / 1000));
+    const hh = Math.floor(s / 3600);
+    const mm = Math.floor((s % 3600) / 60);
+    const ss = s % 60;
+    return `::`;
+  };
+  const haptics = () => {
+    if (!$("hapticsToggle").checked) return;
+    if (navigator.vibrate) navigator.vibrate(10);
+  };
+
+  // ---------- Storage ----------
+  const STORE_KEY = "counter_sessions_v1";
+
+  /** @returns {Array} */
+  const loadSessions = () => {
+    try { return JSON.parse(localStorage.getItem(STORE_KEY) || "[]"); }
+    catch { return []; }
+  };
+  const saveSessions = (arr) => localStorage.setItem(STORE_KEY, JSON.stringify(arr));
+
+  // ---------- App State ----------
+  let mode = "pitch"; // 'pitch' or 'hit'
+  let session = null;
+  let timerId = null;
+
+  const newSession = () => {
+    const start = new Date();
+    session = {
+      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + "_" + Math.random().toString(16).slice(2),
+      mode,
+      startISO: start.toISOString(),
+      endISO: null,
+      count: 0,
+      trackSpeed: $("speedToggle").checked,
+      // For pitching: each pitch can have optional mph. For hitting: we store events timestamps only.
+      events: [] // {tISO, type:'inc'|'dec', mph?:number|null}
+    };
+    updateUI();
+    startTimer();
+  };
+
+  const startTimer = () => {
+    stopTimer();
+    timerId = setInterval(() => updateTimer(), 250);
+    updateTimer();
+  };
+  const stopTimer = () => {
+    if (timerId) clearInterval(timerId);
+    timerId = null;
+  };
+
+  const elapsedMs = () => {
+    if (!session) return 0;
+    const start = new Date(session.startISO).getTime();
+    const end = session.endISO ? new Date(session.endISO).getTime() : Date.now();
+    return end - start;
+  };
+
+  const updateTimer = () => {
+    $("timer").textContent = formatHMS(elapsedMs());
+  };
+
+  const setMode = (m) => {
+    mode = m;
+    $("modePitch").classList.toggle("active", m === "pitch");
+    $("modeHit").classList.toggle("active", m === "hit");
+    if (session) session.mode = m;
+    updateUI();
+  };
+
+  // ---------- Actions ----------
+  const inc = async () => {
+    if (!session) newSession();
+    haptics();
+
+    let mph = null;
+    if (mode === "pitch" && $("speedToggle").checked) {
+      const raw = prompt("Pitch speed (mph). Leave blank if you don’t want to record this pitch.", "");
+      if (raw === null) return; // user canceled
+      const trimmed = raw.trim();
+      if (trimmed.length) {
+        const val = Number(trimmed);
+        if (!Number.isFinite(val) || val <= 0 || val > 120) {
+          alert("That MPH doesn’t look right. Try a number between 1 and 120.");
+          return;
+        }
+        mph = Math.round(val * 10) / 10;
+      }
+    }
+
+    session.count += 1;
+    session.trackSpeed = $("speedToggle").checked;
+    session.events.push({ tISO: nowISO(), type: "inc", mph });
+    updateUI();
+  };
+
+  const dec = () => {
+    if (!session) return;
+    haptics();
+    if (session.count <= 0) return;
+    session.count -= 1;
+    session.events.push({ tISO: nowISO(), type: "dec" });
+    updateUI();
+  };
+
+  const resetCount = () => {
+    if (!session) return;
+    if (!confirm("Reset the count back to 0? (Session stays active.)")) return;
+    haptics();
+    session.count = 0;
+    session.events.push({ tISO: nowISO(), type: "reset" });
+    updateUI();
+  };
+
+  const saveCurrentSession = () => {
+    if (!session) return;
+    session.endISO = nowISO();
+
+    const all = loadSessions();
+    // upsert
+    const idx = all.findIndex(s => s.id === session.id);
+    if (idx >= 0) all[idx] = session;
+    else all.unshift(session);
+
+    saveSessions(all);
+    $("subtitle").textContent = "Session saved ✅";
+    stopTimer();
+    renderSessions();
+  };
+
+  const startNewSession = () => {
+    if (session && session.count > 0) {
+      const ok = confirm("Start a new session? (Current session is not saved yet.)");
+      if (!ok) return;
+    }
+    newSession();
+    $("subtitle").textContent = "New session started";
+  };
+
+  const clearAllSessions = () => {
+    const ok = confirm("Delete ALL saved sessions on this phone? This can’t be undone.");
+    if (!ok) return;
+    saveSessions([]);
+    renderSessions();
+  };
+
+  // ---------- Export ----------
+  const csvEscape = (v) => {
+    const s = String(v ?? "");
+    if (/[",\n]/.test(s)) return `""`;
+    return s;
+  };
+
+  const sessionsToCSV = (sessions) => {
+    // Two-sheet approach isn't possible in a single CSV, so we flatten into an Events table.
+    // Each row is an event (inc/dec/reset) so you can analyze per pitch/swing later.
+    const headers = [
+      "session_id","mode","session_start","session_end","duration_sec",
+      "final_count","track_speed",
+      "event_time","event_type","mph"
+    ];
+    const rows = [headers.join(",")];
+
+    for (const s of sessions) {
+      const dur = (() => {
+        const start = new Date(s.startISO).getTime();
+        const end = s.endISO ? new Date(s.endISO).getTime() : start;
+        return Math.max(0, Math.round((end - start)/1000));
+      })();
+
+      const base = [
+        s.id, s.mode,
+        s.startISO, s.endISO ?? "",
+        dur,
+        s.count ?? 0,
+        s.trackSpeed ? "true" : "false"
+      ];
+
+      const events = Array.isArray(s.events) ? s.events : [];
+      if (!events.length) {
+        rows.push([...base, "", "", ""].map(csvEscape).join(","));
+        continue;
+      }
+      for (const e of events) {
+        rows.push([...base, e.tISO ?? "", e.type ?? "", (e.mph ?? "")].map(csvEscape).join(","));
+      }
+    }
+    return rows.join("\n");
+  };
+
+  const downloadText = async (filename, text) => {
+    // iOS Safari handles blob downloads; user can save to Files and then import to Sheets.
+    const blob = new Blob([text], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 800);
+  };
+
+  const exportAll = async () => {
+    const sessions = loadSessions();
+    if (!sessions.length) return alert("No saved sessions to export yet.");
+    const csv = sessionsToCSV(sessions);
+    const fn = `sessions_export_.csv`;
+    await downloadText(fn, csv);
+  };
+
+  const exportOne = async (id) => {
+    const sessions = loadSessions();
+    const s = sessions.find(x => x.id === id);
+    if (!s) return;
+    const csv = sessionsToCSV([s]);
+    const fn = `session__.csv`;
+    await downloadText(fn, csv);
+  };
+
+  // ---------- Session detail (simple) ----------
+  const viewSession = (id) => {
+    const sessions = loadSessions();
+    const s = sessions.find(x => x.id === id);
+    if (!s) return;
+
+    const start = formatLocalStamp(s.startISO);
+    const end = s.endISO ? formatLocalStamp(s.endISO) : "(not ended)";
+    const speeds = (s.events || []).filter(e => typeof e.mph === "number").map(e => e.mph);
+    const avg = speeds.length ? (speeds.reduce((a,b)=>a+b,0) / speeds.length) : null;
+    const max = speeds.length ? Math.max(...speeds) : null;
+
+    const msgLines = [
+      `Mode:  "Hitting"`,
+      `Start: `,
+      `End: `,
+      `Final count: `,
+      `Track MPH:  "No"`,
+    ];
+    if (s.mode === "pitch" && speeds.length) {
+      msgLines.push(`Recorded MPH:  pitches`);
+      msgLines.push(`Avg MPH:   |  Max MPH: `);
+    }
+    alert(msgLines.join("\n"));
+  };
+
+  const deleteSession = (id) => {
+    const ok = confirm("Delete this session?");
+    if (!ok) return;
+    const sessions = loadSessions().filter(s => s.id !== id);
+    saveSessions(sessions);
+    renderSessions();
+  };
+
+  // ---------- UI ----------
+  const updateUI = () => {
+    if (!session) {
+      $("sessionStamp").textContent = "—";
+      $("countValue").textContent = "0";
+      $("countLabel").textContent = mode === "pitch" ? "Pitches" : "Swings / Contacts";
+      $("plusText").textContent = mode === "pitch" ? "Add pitch" : "Add rep";
+      $("modeHelp").textContent = mode === "pitch"
+        ? "Pitching mode: tap + to add pitches. Enable Track MPH if you want to log speeds."
+        : "Hitting mode: tap + to count swings/contacts (your choice). Great for cage sessions.";
+      return;
+    }
+
+    $("sessionStamp").textContent = formatLocalStamp(session.startISO);
+    $("countValue").textContent = String(session.count);
+    $("countLabel").textContent = mode === "pitch" ? "Pitches" : "Swings / Contacts";
+    $("plusText").textContent = mode === "pitch" ? "Add pitch" : "Add rep";
+    $("modeHelp").textContent = mode === "pitch"
+      ? "Pitching mode: tap + to add pitches. Enable Track MPH if you want to log speeds."
+      : "Hitting mode: tap + to count swings/contacts (your choice). Great for cage sessions.";
+    updateTimer();
+  };
+
+  const renderSessions = () => {
+    const list = $("sessionsList");
+    list.innerHTML = "";
+
+    const sessions = loadSessions();
+    $("emptyState").style.display = sessions.length ? "none" : "block";
+
+    for (const s of sessions) {
+      const item = document.createElement("div");
+      item.className = "sessionItem";
+
+      const main = document.createElement("div");
+      main.className = "sessionMain";
+
+      const top = document.createElement("div");
+      top.className = "sessionTop";
+
+      const pill = document.createElement("span");
+      pill.className = `pill  "hit"`;
+      pill.textContent = s.mode === "pitch" ? "PITCH" : "HIT";
+
+      const title = document.createElement("div");
+      title.className = "sessionTitle";
+      const start = new Date(s.startISO);
+      title.textContent = ` •  "Hitting"`;
+
+      top.appendChild(pill);
+      top.appendChild(title);
+
+      const meta = document.createElement("div");
+      meta.className = "sessionMeta";
+      const endISO = s.endISO || s.startISO;
+      const durSec = Math.max(0, Math.round((new Date(endISO).getTime() - start.getTime())/1000));
+      meta.innerHTML = `
+        <span>count=${(s.count ?? 0)}</span>
+        <span>dur=s</span>
+        <span>mph=${(s.events||[]).filter(e=>typeof e.mph==="number").length}</span>
+      `;
+
+      main.appendChild(top);
+      main.appendChild(meta);
+
+      const btns = document.createElement("div");
+      btns.className = "sessionBtns";
+
+      const viewBtn = document.createElement("button");
+      viewBtn.className = "iconBtn";
+      viewBtn.type = "button";
+      viewBtn.title = "View";
+      viewBtn.textContent = "ℹ️";
+      viewBtn.onclick = () => viewSession(s.id);
+
+      const expBtn = document.createElement("button");
+      expBtn.className = "iconBtn";
+      expBtn.type = "button";
+      expBtn.title = "Export CSV";
+      expBtn.textContent = "⬇️";
+      expBtn.onclick = () => exportOne(s.id);
+
+      const delBtn = document.createElement("button");
+      delBtn.className = "iconBtn";
+      delBtn.type = "button";
+      delBtn.title = "Delete";
+      delBtn.textContent = "🗑️";
+      delBtn.onclick = () => deleteSession(s.id);
+
+      btns.appendChild(viewBtn);
+      btns.appendChild(expBtn);
+      btns.appendChild(delBtn);
+
+      item.appendChild(main);
+      item.appendChild(btns);
+
+      // Tap item to view
+      item.addEventListener("click", (e) => {
+        // ignore button clicks
+        if (e.target.closest("button")) return;
+        viewSession(s.id);
+      });
+
+      list.appendChild(item);
+    }
+  };
+
+  // ---------- Events ----------
+  $("modePitch").addEventListener("click", () => setMode("pitch"));
+  $("modeHit").addEventListener("click", () => setMode("hit"));
+
+  $("btnPlus").addEventListener("click", inc);
+  $("btnMinus").addEventListener("click", dec);
+  $("btnReset").addEventListener("click", resetCount);
+
+  $("btnSave").addEventListener("click", saveCurrentSession);
+  $("btnNew").addEventListener("click", startNewSession);
+
+  $("btnExportAll").addEventListener("click", exportAll);
+  $("btnClearAll").addEventListener("click", clearAllSessions);
+
+  $("speedToggle").addEventListener("change", () => {
+    if (session) session.trackSpeed = $("speedToggle").checked;
+    updateUI();
+  });
+
+  // ---------- Init ----------
+  renderSessions();
+  newSession();
+  $("subtitle").textContent = "New session started";
+})();
+</script>
+</body>
+</html>
